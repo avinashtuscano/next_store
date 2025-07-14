@@ -4,6 +4,7 @@ import "./globals.css";
 import Container from "@/components/global/Container";
 import Navbar from "@/components/navbar/Navbar";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
         >
           <Navbar></Navbar>
           <Container className="py-20">{children}</Container>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
