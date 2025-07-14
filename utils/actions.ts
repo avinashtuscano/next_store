@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import postgres from "postgres";
 
 export type Product = {
@@ -39,12 +40,27 @@ export const fetchAllProducts = async (search: string) => {
       console.log(`${search}`);
       products = await sql<
         Product[]
-      >`SELECT * FROM "Product" WHERE name ILIKE ${`%${search}%`} OR company ILIKE ${`%${search}%`}`; //using LIKE or ILIKE seems to be ok
+      >`SELECT * FROM "Product" WHERE name ILIKE ${`%${search}%`} OR company ILIKE ${`%${search}%`}`; //using LIKE or ILIKE seems to be ok. ILIKE is case insensitive
     }
 
     return products;
   } catch (error) {
     console.log("Database error", error);
     throw new Error("failed to fetch products");
+  }
+};
+
+export const fetchSingleProduct = async (productId: string) => {
+  try {
+    const product = await sql<
+      Product[]
+    >`SELECT * FROM "Product" WHERE id=${productId} `;
+    if (!product) {
+      redirect("/products");
+    }
+    return product[0];
+  } catch (error) {
+    console.log("Database error", error);
+    throw new Error("failed to fetch product");
   }
 };
