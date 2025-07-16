@@ -3,12 +3,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TfiAlignLeft } from "react-icons/tfi";
-import { FiUser } from "react-icons/fi";
 import { links } from "@/utils/links";
 import Link from "next/link";
+import UserIcon from "./UserIcon";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
+import SignOutLink from "./SignOutLink";
 
 function LinksDropdown() {
   return (
@@ -16,20 +19,43 @@ function LinksDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex gap-4">
           <TfiAlignLeft />
-          <FiUser />
+          {/* <FiUser /> */}
+          <UserIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="start">
-        {links.map((link) => {
-          return (
-            <DropdownMenuItem key={link.href}>
-              <Link href={link.href} className="capitalize">
-                {link.label}
-              </Link>
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
+      <SignedOut>
+        <DropdownMenuContent className="w-56" align="start">
+          <DropdownMenuItem>
+            <SignInButton mode="modal">
+              <button className="w-full text-left cursor-pointer">Login</button>
+            </SignInButton>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <SignUpButton mode="modal">
+              <button className="w-full text-left cursor-pointer">
+                Register
+              </button>
+            </SignUpButton>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </SignedOut>
+      <SignedIn>
+        <DropdownMenuContent className="w-56" align="start">
+          {links.map((link) => {
+            return (
+              <DropdownMenuItem key={link.href}>
+                <Link href={link.href} className="capitalize w-full">
+                  {link.label}
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+          <DropdownMenuSeparator></DropdownMenuSeparator>
+          <DropdownMenuItem>
+            <SignOutLink />
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </SignedIn>
     </DropdownMenu>
   );
 }
