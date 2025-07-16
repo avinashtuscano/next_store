@@ -30,6 +30,7 @@ function LinksDropdown() {
               <button className="w-full text-left cursor-pointer">Login</button>
             </SignInButton>
           </DropdownMenuItem>
+          <DropdownMenuSeparator></DropdownMenuSeparator>
           <DropdownMenuItem>
             <SignUpButton mode="modal">
               <button className="w-full text-left cursor-pointer">
