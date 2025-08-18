@@ -1,5 +1,12 @@
+"use server";
+import { currentUser } from "@clerk/nextjs/server";
+
 import { redirect } from "next/navigation";
 import postgres from "postgres";
+import { v4 as uuidv4 } from "uuid";
+import { imageSchema, productSchema } from "./schemas";
+import { uploadImage } from "./supabase";
+import { revalidatePath } from "next/cache";
 
 export type Product = {
   id: string;
@@ -14,7 +21,6 @@ export type Product = {
   clerkId: string;
 };
 
-// import prisma from "./db";
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 
 export const fetchFeaturedProducts = async () => {
@@ -64,3 +70,92 @@ export const fetchSingleProduct = async (productId: string) => {
     throw new Error("failed to fetch product");
   }
 };
+
+export const fetchAdminProducts = async () => {
+  const products = await sql<
+    Product[]
+  >`SELECT * FROM "Product" ORDER BY "createdAt" DESC`;
+  return products;
+};
+
+const getAuthUser = async () => {
+  const user = await currentUser();
+  if (!user) {
+    redirect("/");
+  }
+  return user;
+};
+
+export const createProductAction = async (
+  prevState: any,
+  formData: FormData
+): Promise<{ message: string }> => {
+  try {
+    const user = getAuthUser();
+    //const uuid = uuidv4();
+    const clerkId = (await user).id;
+
+    const validatedFields = productSchema.safeParse({
+      id: uuidv4(),
+      name: formData.get("name"),
+      company: formData.get("company"),
+      price: formData.get("price"),
+      featured: formData.get("featured"),
+      description: formData.get("description"),
+    });
+
+    const validateImageMaxSize = imageSchema
+      .max(1_000_000)
+      .safeParse(formData.get("image") as File); // maximum .size (bytes)
+    // console.log(validateImageMaxSize);
+
+    if (!validateImageMaxSize.success) {
+      throw new Error("The size of image should be less than 1MB");
+    }
+    const validateImageType = imageSchema
+      .mime(["image/png", "image/jpeg"])
+      .safeParse(formData.get("image") as File); // multiple MIME types
+
+    if (!validateImageType.success) {
+      throw new Error("The image type should either be png or jpeg");
+    }
+
+    if (!validatedFields.success) {
+      const errors = validatedFields.error.issues.map((error) => error.message);
+      throw new Error(errors.join(", "));
+    }
+
+    const { id, name, company, price, featured, description } =
+      validatedFields.data;
+
+    const fullPath = await uploadImage(validateImageType.data);
+
+    // const image = `/images/${validateImageType.data.name}`;
+    // const image = "/images/product-1.jpg"
+    const image = fullPath;
+    console.log(image);
+
+    await sql`INSERT INTO "Product" (id, name, company, description, featured, image, price, "createdAt", "updatedAt", "clerkId" ) VALUES (${id}, ${name}, ${company},${description},${featured}, ${image}, ${price}, NOW(), NOW(), ${clerkId})`;
+
+    // return { message: "product created" };
+  } catch (error) {
+    console.log(error);
+    return {
+      message:
+        error instanceof Error ? error.message : "An error was encountred",
+    };
+  }
+  redirect("/admin/products");
+};
+
+export async function deleteProduct(id: string) {
+  try {
+    await sql`DELETE FROM "Product" WHERE id = ${id}`;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Unable to delete product");
+  }
+  revalidatePath("/admin/products");
+}
+
+// export async function updateProductAction(id: string) {}
