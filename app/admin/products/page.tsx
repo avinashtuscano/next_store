@@ -47,10 +47,13 @@ async function AdminProducts() {
             <TableCell>{formatCurrency(product.price)}</TableCell>
             <TableCell className="flex items-center gap-x-2">
               <Link href={`/admin/products/${product.id}/edit`}>
-                <EditButtonIcon></EditButtonIcon>
+                <EditButtonIcon id={product.id}></EditButtonIcon>
               </Link>
-
-              <DeleteButtonIcon id={product.id}></DeleteButtonIcon>
+              {/* <input type="text" name="image" value={product.image} hidden /> */}
+              <DeleteButtonIcon
+                id={product.id}
+                url={product.image}
+              ></DeleteButtonIcon>
             </TableCell>
             {/* <TableCell className="text-right">
               {formatCurrency(product.price)}

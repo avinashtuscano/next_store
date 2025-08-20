@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import postgres from "postgres";
 import { v4 as uuidv4 } from "uuid";
 import { imageSchema, productSchema } from "./schemas";
-import { uploadImage } from "./supabase";
+import { deleteImage, uploadImage } from "./supabase";
 import { revalidatePath } from "next/cache";
 
 export type Product = {
@@ -87,7 +87,7 @@ const getAuthUser = async () => {
 };
 
 export const createProductAction = async (
-  prevState: any,
+  prevState: unknown,
   formData: FormData
 ): Promise<{ message: string }> => {
   try {
@@ -148,9 +148,11 @@ export const createProductAction = async (
   redirect("/admin/products");
 };
 
-export async function deleteProduct(id: string) {
+export async function deleteProduct(id: string, url: string) {
   try {
     await sql`DELETE FROM "Product" WHERE id = ${id}`;
+    console.log(url);
+    deleteImage(url);
   } catch (error) {
     console.log(error);
     throw new Error("Unable to delete product");
@@ -158,4 +160,49 @@ export async function deleteProduct(id: string) {
   revalidatePath("/admin/products");
 }
 
-// export async function updateProductAction(id: string) {}
+export const updateProductAction = async (formData: FormData) => {
+  // await getAdminUser();
+  try {
+    const productId = formData.get("id") as string;
+    console.log(productId);
+
+    const validatedFields = productSchema.safeParse({
+      id: productId,
+      name: formData.get("name"),
+      company: formData.get("company"),
+      price: formData.get("price"),
+      featured: formData.get("featured"),
+      description: formData.get("description"),
+    });
+    if (!validatedFields.success) {
+      const errors = validatedFields.error.issues.map((error) => error.message);
+      throw new Error(errors.join(", "));
+    }
+
+    const { id, name, company, price, featured, description } =
+      validatedFields.data;
+
+    await sql`UPDATE "Product" SET name = ${name}, company = ${company}, price=${price}, featured=${featured}, description = ${description} WHERE id = ${id}`;
+
+    revalidatePath(`/admin/products/${productId}/edit`);
+    console.log("Product Updated");
+    // renderMessage("Product updated successfully");
+    // return { message: "Product updated successfully" };
+  } catch (error) {
+    console.log(error);
+    // renderMessage(
+    //   error instanceof Error ? error.message : "An error was encountred"
+    // );
+  }
+};
+export async function updateProductImageAction(id: string) {
+  console.log(id);
+}
+
+export async function fetchAdminProductDetails(id: string) {
+  const product = await sql<
+    Product[]
+  >`SELECT * FROM "Product" WHERE id = ${id} ORDER BY "createdAt" DESC`;
+  if (!product) redirect("/admin/products");
+  return product;
+}

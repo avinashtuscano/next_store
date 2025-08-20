@@ -45,10 +45,11 @@ export function EditButtonIcon() {
   return <EditButton></EditButton>;
 }
 
-export function DeleteButtonIcon({ id }: { id: string }) {
-  const deleteProductWithId = deleteProduct.bind(null, id);
+export function DeleteButtonIcon({ id, url }: { id: string; url: string }) {
+  // const deleteProductWithId = deleteProduct.bind(null, id);
+  // const deleteProductWithIdAndURL = deleteProductWithId.bind(null, url);
   return (
-    <form action={deleteProductWithId}>
+    <form action={() => deleteProduct(id, url)}>
       <DeleteButton></DeleteButton>
     </form>
   );
