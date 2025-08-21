@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { imageSchema, productSchema } from "./schemas";
 import { deleteImage, uploadImage } from "./supabase";
 import { revalidatePath } from "next/cache";
+import { State } from "./types";
 
 export type Product = {
   id: string;
@@ -160,10 +161,14 @@ export async function deleteProduct(id: string, url: string) {
   revalidatePath("/admin/products");
 }
 
-export const updateProductAction = async (formData: FormData) => {
+export const updateProductAction = async (
+  prevState: State,
+  formData: FormData
+): Promise<{ message: string }> => {
   // await getAdminUser();
+  const productId = formData.get("id") as string;
+
   try {
-    const productId = formData.get("id") as string;
     console.log(productId);
 
     const validatedFields = productSchema.safeParse({
@@ -184,16 +189,20 @@ export const updateProductAction = async (formData: FormData) => {
 
     await sql`UPDATE "Product" SET name = ${name}, company = ${company}, price=${price}, featured=${featured}, description = ${description} WHERE id = ${id}`;
 
-    revalidatePath(`/admin/products/${productId}/edit`);
     console.log("Product Updated");
     // renderMessage("Product updated successfully");
     // return { message: "Product updated successfully" };
   } catch (error) {
     console.log(error);
-    // renderMessage(
-    //   error instanceof Error ? error.message : "An error was encountred"
-    // );
+    return {
+      message:
+        error instanceof Error ? error.message : "An error was encountred",
+    };
   }
+  revalidatePath(`/admin/products/${productId}/edit`);
+  return {
+    message: "Product updated successfully",
+  };
 };
 export async function updateProductImageAction(id: string) {
   console.log(id);

@@ -1,21 +1,23 @@
-import { fetchAdminProductDetails, updateProductAction } from "@/utils/actions";
+import { fetchAdminProductDetails } from "@/utils/actions";
 
-import FormInput from "@/components/form/FormInput";
-import PriceInput from "@/components/form/PriceInput";
-import TextAreaInput from "@/components/form/TextAreaInput";
-import { SubmitButton } from "@/components/form/Buttons";
-import CheckboxInput from "@/components/form/CheckboxInput";
+// import FormInput from "@/components/form/FormInput";
+// import PriceInput from "@/components/form/PriceInput";
+// import TextAreaInput from "@/components/form/TextAreaInput";
+// import { SubmitButton } from "@/components/form/Buttons";
+// import CheckboxInput from "@/components/form/CheckboxInput";
+import EditForm from "@/components/form/EditForm";
 async function EditProductPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const id = params.id;
   const product = await fetchAdminProductDetails(id);
-  const { name, company, description, featured, price } = product[0];
+  // const { name, company, description, featured, price } = product[0];
   return (
     <section>
       <h1 className="text-2xl font-semibold mb-8 capitalize">update product</h1>
-      <div className="border p-8 rounded-md">
-        {/* Image Input Container */}
-        <form action={updateProductAction}>
+      <EditForm id={id} product={product[0]}></EditForm>
+      {/* <div className="border p-8 rounded-md"> */}
+      {/* Image Input Container */}
+      {/* <form action={updateProductAction}>
           <div className="grid gap-4 md:grid-cols-2 my-4">
             <input type="hidden" name="id" value={id} />
             <FormInput
@@ -47,7 +49,7 @@ async function EditProductPage(props: { params: Promise<{ id: string }> }) {
           </div>
           <SubmitButton text="update product" className="mt-8" />
         </form>
-      </div>
+      </div> */}
     </section>
   );
 }
