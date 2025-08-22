@@ -204,8 +204,11 @@ export const updateProductAction = async (
     message: "Product updated successfully",
   };
 };
-export async function updateProductImageAction(id: string) {
-  console.log(id);
+export async function updateProductImageAction(formData: FormData) {
+  const image = formData.get("image");
+  const id = formData.get("id");
+  const oldImageURL = formData.get("url");
+  console.log(image, id, oldImageURL);
 }
 
 export async function fetchAdminProductDetails(id: string) {
