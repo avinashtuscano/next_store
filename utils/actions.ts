@@ -204,11 +204,48 @@ export const updateProductAction = async (
     message: "Product updated successfully",
   };
 };
-export async function updateProductImageAction(formData: FormData) {
-  const image = formData.get("image");
-  const id = formData.get("id");
-  const oldImageURL = formData.get("url");
-  console.log(image, id, oldImageURL);
+export async function updateProductImageAction(
+  prevState: State,
+  formData: FormData
+): Promise<{ message: string }> {
+  const id = formData.get("id") as string;
+
+  try {
+    const validateImageMaxSize = imageSchema
+      .max(1_000_000)
+      .safeParse(formData.get("image") as File); // maximum .size (bytes)
+    // console.log(validateImageMaxSize);
+
+    if (!validateImageMaxSize.success) {
+      throw new Error("The size of image should be less than 1MB");
+    }
+    const validateImageType = imageSchema
+      .mime(["image/png", "image/jpeg"])
+      .safeParse(formData.get("image") as File); // multiple MIME types
+
+    if (!validateImageType.success) {
+      throw new Error("The image type should either be png or jpeg");
+    }
+
+    console.log(validateImageType.data);
+
+    const oldImageURL = formData.get("url") as string;
+
+    deleteImage(oldImageURL);
+    const neeImagePath = await uploadImage(validateImageType.data);
+
+    await sql`UPDATE "Product" SET image=${neeImagePath} WHERE id=${id}`;
+  } catch (error) {
+    console.log(error);
+    return {
+      message:
+        error instanceof Error ? error.message : "An error was encountred",
+    };
+  }
+  revalidatePath(`/admin/products/${id}/edit`);
+  return {
+    message: "Product image updated successfully",
+  };
 }
 
 export async function fetchAdminProductDetails(id: string) {

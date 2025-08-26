@@ -2,9 +2,11 @@
 import { Product, updateProductImageAction } from "@/utils/actions";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import ImageInput from "./ImageInput";
 import { SubmitButton } from "./Buttons";
+import { State } from "@/utils/types";
+import { toast } from "sonner";
 
 function ImageInputContainer({
   id,
@@ -14,6 +16,16 @@ function ImageInputContainer({
   product: Product;
 }) {
   const [isUploadVisible, setIsUploadVisible] = useState(false);
+  const initialState: State = { message: null };
+  const [state, formAction] = useActionState(
+    updateProductImageAction,
+    initialState
+  );
+  useEffect(() => {
+    if (state.message) {
+      toast(`Message: ${state.message}`);
+    }
+  }, [state]);
   return (
     <div className="mb-8">
       <Image
@@ -31,7 +43,7 @@ function ImageInputContainer({
         Upload New Image
       </Button>
       {isUploadVisible && (
-        <form action={updateProductImageAction}>
+        <form action={formAction}>
           <div className="mt-4 w-md">
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="url" value={product.image} />
