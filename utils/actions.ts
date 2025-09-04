@@ -268,6 +268,7 @@ export async function isProductFavourite(id: string) {
   const user = await currentUser();
   if (!user) {
     fetchFeaturedProducts();
+    return null;
   } else {
     const user = getAuthUser();
     const clerkId = (await user).id;
