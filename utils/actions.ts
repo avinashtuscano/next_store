@@ -265,16 +265,22 @@ export async function fetchAdminProductDetails(id: string) {
 }
 
 export async function isProductFavourite(id: string) {
-  const user = await getAuthUser();
-  console.log(
-    `SELECT * FROM "favourites" where productId=${id} and clerkId=${user.id}`
-  );
-  const favouriteProduct = await sql<
-    Favourite[]
-  >`SELECT * FROM "favourites" where productId=${id} and clerkId=${user.id}`;
-  console.log(favouriteProduct);
-  if (favouriteProduct.length === 0) return null;
-  return favouriteProduct[0].id;
+  const user = await currentUser();
+  if (!user) {
+    fetchFeaturedProducts();
+  } else {
+    const user = getAuthUser();
+    const clerkId = (await user).id;
+    console.log(
+      `SELECT * FROM "favourites" where productId=${id} and clerkId=${clerkId}`
+    );
+    const favouriteProduct = await sql<
+      Favourite[]
+    >`SELECT * FROM "favourites" where productId=${id} and clerkId=${clerkId}`;
+    console.log(favouriteProduct);
+    if (favouriteProduct.length === 0) return null;
+    return favouriteProduct[0].id;
+  }
 }
 
 export async function addToFavorites(id: string) {
