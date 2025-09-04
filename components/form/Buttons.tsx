@@ -2,7 +2,8 @@
 import { Loader2Icon } from "lucide-react";
 import { LiaEditSolid } from "react-icons/lia";
 import { LiaTrashSolid } from "react-icons/lia";
-
+import { FaHeart } from "react-icons/fa";
+import { FaRegHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useFormStatus } from "react-dom";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,25 @@ export function EditButton() {
       className="size-8 p-2 cursor-pointer"
     >
       {pending ? <Loader2Icon className="animate-spin" /> : <LiaEditSolid />}
+    </Button>
+  );
+}
+
+export function FavouriteButton({
+  isFavourite,
+}: {
+  isFavourite: string | null;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <Button size="icon" variant="outline" className="p-2 cursor-pointer">
+      {pending ? (
+        <Loader2Icon className="animate-spin" />
+      ) : isFavourite ? (
+        <FaHeart />
+      ) : (
+        <FaRegHeart />
+      )}
     </Button>
   );
 }

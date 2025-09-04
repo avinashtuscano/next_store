@@ -22,6 +22,14 @@ export type Product = {
   clerkId: string;
 };
 
+export type Favourite = {
+  id: string;
+  clerkId: string;
+  productId: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 
 export const fetchFeaturedProducts = async () => {
@@ -254,4 +262,39 @@ export async function fetchAdminProductDetails(id: string) {
   >`SELECT * FROM "Product" WHERE id = ${id} ORDER BY "createdAt" DESC`;
   if (!product) redirect("/admin/products");
   return product;
+}
+
+export async function isProductFavourite(id: string) {
+  const user = await getAuthUser();
+  console.log(
+    `SELECT * FROM "favourites" where productId=${id} and clerkId=${user.id}`
+  );
+  const favouriteProduct = await sql<
+    Favourite[]
+  >`SELECT * FROM "favourites" where productId=${id} and clerkId=${user.id}`;
+  console.log(favouriteProduct);
+  if (favouriteProduct.length === 0) return null;
+  return favouriteProduct[0].id;
+}
+
+export async function addToFavorites(id: string) {
+  const user = getAuthUser();
+  //const uuid = uuidv4();
+  const clerkId = (await user).id;
+  const isFavourite = await isProductFavourite(id);
+  console.log(isFavourite);
+  if (isFavourite) {
+    try {
+      await sql`DELETE FROM "favourites" WHERE productId = ${id} and clerkId=${clerkId}`;
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    try {
+      await sql`INSERT INTO "favourites" (clerkid, productid, createdAt, updatedAt) VALUES (${clerkId}, ${id}, NOW(), NOW())`;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  revalidatePath("/");
 }
