@@ -1,11 +1,11 @@
 "use client";
-// import { Button } from "@/components/ui/button";
+
 import { addToFavorites } from "@/utils/actions";
-// import { useFormStatus } from "react-dom";
-// import { FaHeart } from "react-icons/fa";
-// import { FaRegHeart } from "react-icons/fa";
-// import { Loader2Icon } from "lucide-react";
+
 import { FavouriteButton } from "../form/Buttons";
+import { State } from "@/utils/types";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 
 function FavoriteToggleForm({
   isFavourite,
@@ -14,9 +14,24 @@ function FavoriteToggleForm({
   isFavourite: string | null;
   productId: string;
 }) {
-  // const { pending } = useFormStatus();
+  const initialState: State = { message: null };
+  const [state, formAction] = useActionState(addToFavorites, initialState);
+  useEffect(() => {
+    if (state.message) {
+      toast(`Message: ${state.message}`);
+    }
+  }, [state]);
+
   return (
-    <form action={() => addToFavorites(productId)}>
+    <form action={formAction}>
+      <input
+        type="text"
+        name="productId"
+        id="productId"
+        value={productId}
+        hidden
+        readOnly
+      ></input>
       <FavouriteButton isFavourite={isFavourite} />
     </form>
   );

@@ -284,24 +284,40 @@ export async function isProductFavourite(id: string) {
   }
 }
 
-export async function addToFavorites(id: string) {
+export async function addToFavorites(
+  prevState: State,
+  formData: FormData
+): Promise<{ message: string }> {
   const user = getAuthUser();
   //const uuid = uuidv4();
+  const id = formData.get("productId") as string;
   const clerkId = (await user).id;
+
   const isFavourite = await isProductFavourite(id);
-  console.log(isFavourite);
+
   if (isFavourite) {
     try {
       await sql`DELETE FROM "favourites" WHERE productId = ${id} and clerkId=${clerkId}`;
     } catch (error) {
       console.log(error);
+      return {
+        message:
+          error instanceof Error ? error.message : "An error was encountred",
+      };
     }
+    revalidatePath(`/`);
+    return { message: "Removed from Favourites" };
   } else {
     try {
       await sql`INSERT INTO "favourites" (clerkid, productid, createdAt, updatedAt) VALUES (${clerkId}, ${id}, NOW(), NOW())`;
     } catch (error) {
       console.log(error);
+      return {
+        message:
+          error instanceof Error ? error.message : "An error was encountred",
+      };
     }
+    revalidatePath(`/`);
+    return { message: "Added to Favourites" };
   }
-  revalidatePath("/");
 }
