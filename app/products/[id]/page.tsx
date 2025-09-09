@@ -2,6 +2,7 @@ import FavoriteToggleButton from "@/components/products/FavoriteToggleButton";
 import AddToCart from "@/components/single-product/AddToCart";
 import Breadcrumbs from "@/components/single-product/Breadcrumbs";
 import ProductRating from "@/components/single-product/ProductRatings";
+import ShareButton from "@/components/single-product/ShareButton";
 
 import { fetchSingleProduct } from "@/utils/actions";
 import { formatCurrency } from "@/utils/format";
@@ -35,7 +36,10 @@ async function SingleProductPage(props: { params: Promise<{ id: string }> }) {
         <div>
           <div className="flex gap-x-8 items-center">
             <h1 className="capitalize text-3xl font-bold">{name}</h1>
-            <FavoriteToggleButton productId={id} />
+            <div className="flex items-center gap-x-2">
+              <FavoriteToggleButton productId={id} />
+              <ShareButton productId={id} name={name} />
+            </div>
           </div>
           <ProductRating />
           <h4 className="text-xl mt-2">{company}</h4>
