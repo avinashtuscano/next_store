@@ -142,7 +142,6 @@ export const createProductAction = async (
     // const image = `/images/${validateImageType.data.name}`;
     // const image = "/images/product-1.jpg"
     const image = fullPath;
-    console.log(image);
 
     await sql`INSERT INTO "Product" (id, name, company, description, featured, image, price, "createdAt", "updatedAt", "clerkId" ) VALUES (${id}, ${name}, ${company},${description},${featured}, ${image}, ${price}, NOW(), NOW(), ${clerkId})`;
 
@@ -160,7 +159,7 @@ export const createProductAction = async (
 export async function deleteProduct(id: string, url: string) {
   try {
     await sql`DELETE FROM "Product" WHERE id = ${id}`;
-    console.log(url);
+
     deleteImage(url);
   } catch (error) {
     console.log(error);
@@ -272,13 +271,11 @@ export async function isProductFavourite(id: string) {
   } else {
     const user = getAuthUser();
     const clerkId = (await user).id;
-    console.log(
-      `SELECT * FROM "favourites" where productId=${id} and clerkId=${clerkId}`
-    );
+
     const favouriteProduct = await sql<
       Favourite[]
     >`SELECT * FROM "favourites" where productId=${id} and clerkId=${clerkId}`;
-    console.log(favouriteProduct);
+
     if (favouriteProduct.length === 0) return null;
     return favouriteProduct[0].id;
   }
@@ -321,3 +318,20 @@ export async function addToFavorites(
     return { message: "Added to Favourites" };
   }
 }
+
+export async function fetchUserFavourites() {
+  try {
+    const user = getAuthUser();
+    const clerkId = (await user).id;
+    const userFavs = await sql<
+      Product[]
+    >`SELECT p.id, p.name, p.company, p.description, p.featured, p.image, p.price, p."createdAt", p."updatedAt", p."clerkId" FROM "Product" p JOIN favourites f ON p.id = f.productid and f.clerkId = ${clerkId}`;
+
+    return userFavs;
+  } catch (error) {
+    console.log("Database error", error);
+    throw new Error("failed to fetch products");
+  }
+}
+
+// SELECT p.id, p.name, p.company, p.description, p.featured, p.image, p.price, p."createdAt", p."updatedAt", p."clerkId" FROM "Product" p JOIN favourites f ON p.id = f.productid and f.clerkId = 'user_2zuO3ZDtkOQEZcAFsa2Jsw7ikGL'
