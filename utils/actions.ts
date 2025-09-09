@@ -320,9 +320,9 @@ export async function addToFavorites(
 }
 
 export async function fetchUserFavourites() {
+  const user = getAuthUser();
+  const clerkId = (await user).id;
   try {
-    const user = getAuthUser();
-    const clerkId = (await user).id;
     const userFavs = await sql<
       Product[]
     >`SELECT p.id, p.name, p.company, p.description, p.featured, p.image, p.price, p."createdAt", p."updatedAt", p."clerkId" FROM "Product" p JOIN favourites f ON p.id = f.productid and f.clerkId = ${clerkId}`;
